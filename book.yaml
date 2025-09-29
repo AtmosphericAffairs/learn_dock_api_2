@@ -1,0 +1,227 @@
+openapi: 3.0.0 #указываем версию 3.0.0
+
+info:
+  title: Api для библиотеки
+  version: 1.0.0
+  description: |
+    <b> Api для работы с базой данных библиотеки.</b> <br>
+    API позволяет получать: <ul>
+    <li> Список всех книг с их авторами, </li>
+    <li> Информацию о конкретной книге, </li>
+    <li> список авторов,</li>
+    <li> список книг одного автора. </li> </ul>
+    Также книги можно добавлять, удалять и редактировать о них сведения.
+
+
+servers:  
+  - url: https://api.library.com/v1
+    description: Production server
+  - url: https://staging-api.library.com/v1  
+    description: Staging server
+
+
+paths:
+  /books:
+    get:
+      summary: Получить список книг с авторами.
+      description: "Возвращает массив книг. Каждая книга содержит: id, название, данные об авторе."
+      responses: 
+        '200':
+          description: Успешно. Возвращает список книг.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BookBase'
+
+    post:
+      summary: Добавить новую книгу.
+      description: "Добавляет книгу в базу. Для добавления требуется ключ."
+      security: 
+        - ApiKeyAuth: []
+      requestBody: 
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookCreate'
+      responses:
+        '201': 
+          description: Успешно. Книга добавлена в базу.
+
+  /books/{id}:
+    get:
+      summary: Получить информацию о книге по id.
+      description: "Возвращает объект с данными о книге по id. Объект содержит: id, название, данные об авторе, аннотацию."
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: "id книги."
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: "Успешно. Возвращает данные о книге."
+          content:
+            application/json:
+              schema: 
+                $ref: '#/components/schemas/BookFull'
+        '404': 
+          description: "Книга с указанным id не найдена."
+
+    put: 
+      summary: Изменить данные о книге.
+      description: "Изменяет данные о книге по id. Для изменения требуется ключ."
+      security: 
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: "id книги."
+          schema:
+            type: integer
+      requestBody: 
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookCreate'
+      responses:
+        '200': 
+          description: "Успешно. Данные о книге изменены."
+        '401': 
+          description: "Неверный или отсутствующий API-ключ."
+        '404': 
+          description: "Книга с указанным id не найдена."
+
+    delete:
+      summary: Удалить книгу по id.
+      description: "Удаляет книгу. Для удаления требуется ключ."
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: "id книги."
+          schema:
+            type: integer
+      responses: 
+        '200': 
+          description: Успешно. Книга удалена из базы.
+        '404': 
+          description: Книги с таким id нет в базе.
+
+  /author:
+    get: 
+      summary: Получить список авторов.
+      description: "Возвращает список авторов. Каждый автор содержит: id, имя."
+      responses: 
+       '200':
+          description: "Успешно. Возвращает список авторов."
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Author'
+
+  /author/{id}/books:
+    get:
+      summary: Получить список книг автора по его id.
+      description: "Возвращает список книг. Книга содержит: id, название."
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: "id автора."
+          schema:
+            type: integer
+      responses:
+        '200' :
+          description: "Успешно. Возвращает список книг."
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BookMin'
+
+
+components:
+  schemas:
+    BookMin:
+      type: object
+      required:
+        - id
+        - name_book
+      properties:
+        id: 
+          type: integer
+          format: int64
+          example: 1
+        name_book:
+          type: string
+          example: Война и Мир
+
+    BookBase:
+     allOf:
+       - $ref: '#/components/schemas/BookMin'
+       - type: object
+         required:
+          - author
+         properties:
+           author:
+             $ref: '#/components/schemas/Author'
+
+    BookFull:
+      allOf:
+        - $ref: '#/components/schemas/BookBase'
+        - type: object
+          required:
+            - annotation
+          properties:
+            annotation:
+              type: string
+              example: События в книге происходят во время наполеоновских войн...
+
+    Author:
+      type: object
+      required:
+        - id
+        - name_author
+      properties:
+        id: 
+          type: integer
+          format: int64
+          example: 1
+        name_author:
+          type: string
+          example: Лёва Толстый
+
+    BookCreate:
+      type: object
+      required:
+        - name_book
+        - name_author
+        - annotation
+      properties:
+        name_book:
+          type: string
+          example: Шекспир
+        name_author:
+          type: string
+          example: Рома и Джуля
+        annotation: 
+          type: string
+          example: Книга о любви...
+      
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-KEY
+        
