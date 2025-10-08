@@ -6,8 +6,8 @@ info:
   description: |
     <b> Api для работы с базой данных библиотеки.</b> <br>
     API позволяет получать: <ul>
-    <li> Список всех книг с их авторами, </li>
-    <li> Информацию о конкретной книге, </li>
+    <li> список всех книг с их авторами, </li>
+    <li> информацию о конкретной книге, </li>
     <li> список авторов,</li>
     <li> список книг одного автора. </li> </ul>
     Также книги можно добавлять, удалять и редактировать о них сведения.
@@ -200,7 +200,7 @@ components:
           example: 1
         name_author:
           type: string
-          example: Лёва Толстый
+          example: Лев Толстой
 
     BookCreate:
       type: object
@@ -214,10 +214,10 @@ components:
           example: Шекспир
         name_author:
           type: string
-          example: Рома и Джуля
+          example: Ромео и Джульета
         annotation: 
           type: string
-          example: Книга о любви...
+          example: Книга о любви
       
   securitySchemes:
     ApiKeyAuth:
